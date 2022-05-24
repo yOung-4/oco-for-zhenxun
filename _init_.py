@@ -1,38 +1,50 @@
 from nonebot import on_command
+from nonebot.adapters.onebot.v11 import GROUP, Bot, GroupMessageEvent, Message
+from nonebot.params import CommandArg, Command, ArgStr
+import time
+import re
+import random
+import asyncio
 
-__zx_plugin_name__ = "溯洄"
-__plugin_usage__ = """
-usage:
-    处理跑团有关的随机数与记录工作
-    指令： 
-        创建跑团项目 [项目名] : 创建一个跑团项目,开启游戏
-        创建数值 [成员] [类] [默认值] :创建一个数值记录
-        创建判定事件 [成员] [键] [值] : 进行一次判定
-        投掷骰子 [取值范围] : 取随机数
-        记录数值 [成员] [类] [值] :记下一个数值
-""".strip()
 
-__plugin_des__ = "听说你喜欢跑团?"
+create = on_command(
+    "创建新项目", aliases={"新建项目", "新项目"}, permission=GROUP, priority=5, block=True)
+add_user = on_command(
+    "添加用户", aliases={"拉人"}, permission=GROUP, priority=5, block=True
+)
+add_ability = on_command(
+    "新建能力", aliases={"能力"}, permission=GROUP, priority=5, block=True
+)
 
-__plugin_cmd__ = ["创建跑团项目?[项目名]",
-                  "创建数值?[成员]?[类]?[默认值]",
-                  "创建判定事件?[成员]?[键]?[值]",
-                  "投掷骰子?[取值范围]",
-                  "记录数值?[成员]?[类]?[值]",]
+states = 0  # 游戏状态(是否有进行中的游戏)-int-0 : 无状态 / 1 : 新建项目 / 2 : 添加用户 / 3 : 添加能力 / 4 : 添加属性 / 5 : 进行中
+userls = []
+abilityls = {}
 
-__plugin_settings__ = {"level": 5,
-    "default_status": True,
-    "limit_superuser": False,
-    "cmd": ["OCO"],}
+@create.got("project_name", prompt="项目不配拥有姓名吗")
+async def _(project_name_input: str = ArgStr("project_name")):
+    if states == 1 and 2 and 3 and 4:
+        await create.finish("错误,已经有活动中的项目,新建失败", at_sender=True)
+    elif states == 5 :
+        await create.finish("不要打断(ノへ￣、)", at_sender=True)
+    else:
+        states = 1
+        project_name = project_name_input
+        global project_name
+    print("log.txt do not exist")
+    file = open("log.txt", "a+")
+    await create.finish("创建成功", at_sender=True)
 
-__plugin_version__ = 1.0.0
-__plugin_author__ = "young-4"
 
-__plugin_resource__ = {"longtimesaving" : {"value" : 1 ,
-                                         "help" : "设置是否存储到本地以长期使用",
-                                         "default_value" : 1,},
-                     "resultsaving" : {"value" : 1 ,
-                                       "help" : "设置是否记录游戏结果(待开发)",
-                                       "default_value" : 1,},
-}
+@add_user.got("user_input", prompt="一个人都不加那是想干嘛")
+async def _(user_input : str = ArgStr("user_input"))
+    for object in re.split(r" ", user_input):
+        userls.append(object)
 
+@add_ability.got("user_input", prompt="输入能力,格式为'新建能力 用户名 能力名 默认值'")
+async  def _(user_input : str = ArgStr("user_input")):
+    if re.match(r' ', user_input) :
+    ls = re.split(r" ", user_input)
+    abilityls[ls[1]] = ls[2]
+    await add_ability.finish("创建成功", at_sender=True)
+    else:
+        await add_ability.finish("错误的输入", at_sender=True)
