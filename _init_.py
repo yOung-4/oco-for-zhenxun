@@ -1,50 +1,84 @@
+from gamingstatechanging import GamingStateChanging, Gaming
+from saving import gameingdata
 from nonebot import on_command
-from nonebot.adapters.onebot.v11 import GROUP, Bot, GroupMessageEvent, Message
-from nonebot.params import CommandArg, Command, ArgStr
-import time
+from nonebot.params import ArgStr
+from nonebot.adapters.onebot.v11 import GROUP
 import re
-import random
-import asyncio
 
 
-create = on_command(
-    "创建新项目", aliases={"新建项目", "新项目"}, permission=GROUP, priority=5, block=True)
-add_user = on_command(
-    "添加用户", aliases={"拉人"}, permission=GROUP, priority=5, block=True
-)
-add_ability = on_command(
-    "新建能力", aliases={"能力"}, permission=GROUP, priority=5, block=True
-)
+create_project = on_command( "创建项目", aliases={"新建项目"}, permission=GROUP, priority=5, block=True)
+add_states = on_command( "添加状态", aliases={"新建状态", "创建状态"}, permission=GROUP, priority=5, block=True)
+add_ability = on_command( "添加能力", aliases={"新建能力", "创建能力"}, permission=GROUP, priority=5, block=True)
+roll = on_command( "roll", aliases={"Roll", "ROLL"}, permission=GROUP, priority=5, block=True)
+add_roll = on_command( "添加修改roll", aliases={"新建修改Roll", "创建修改roll"}, permission=GROUP, priority=5, block=True)
+add_roll2 = on_command("添加roll", aliases={"新建Roll", "创建roll"}, permission=GROUP, priority=5, block=True)
+GamingStates = 0
 
-states = 0  # 游戏状态(是否有进行中的游戏)-int-0 : 无状态 / 1 : 新建项目 / 2 : 添加用户 / 3 : 添加能力 / 4 : 添加属性 / 5 : 进行中
-userls = []
-abilityls = {}
-
-@create.got("project_name", prompt="项目不配拥有姓名吗")
-async def _(project_name_input: str = ArgStr("project_name")):
-    if states == 1 and 2 and 3 and 4:
-        await create.finish("错误,已经有活动中的项目,新建失败", at_sender=True)
-    elif states == 5 :
-        await create.finish("不要打断(ノへ￣、)", at_sender=True)
-    else:
-        states = 1
-        project_name = project_name_input
-        global project_name
-    print("log.txt do not exist")
-    file = open("log.txt", "a+")
-    await create.finish("创建成功", at_sender=True)
+@create_project.handle()
+async def GamingStatesChang():
+    global GamingStates
+    GamingStates = 1 # 以后用的
+    await create_project.finish("@猫屋敷你比较可爱,你来写吧") # 创建项目成功
 
 
-@add_user.got("user_input", prompt="一个人都不加那是想干嘛")
-async def _(user_input : str = ArgStr("user_input"))
-    for object in re.split(r" ", user_input):
-        userls.append(object)
+@add_states.got("state_input", prompt="@猫屋敷你比较可爱,你来写吧") # 用户发了关键词,没写后面的参数(虚空命令)
+# 格式: 属性名 用户名 默认值
+async def new(states_input: str = ArgStr("state_input")):
+    ReResult = []
+    ReResult = re.split(r" ", states_input)
+    state_name =ReResult[0]
+    userID = ReResult[1]
+    value = Result[2]
+    await gameingdata.__AddStates__(states_name=state_name, userID=userID, value=value)
+    await add_states.finish("@猫屋敷你比较可爱,你来写吧") # 添加成功
 
-@add_ability.got("user_input", prompt="输入能力,格式为'新建能力 用户名 能力名 默认值'")
-async  def _(user_input : str = ArgStr("user_input")):
-    if re.match(r' ', user_input) :
-    ls = re.split(r" ", user_input)
-    abilityls[ls[1]] = ls[2]
-    await add_ability.finish("创建成功", at_sender=True)
-    else:
-        await add_ability.finish("错误的输入", at_sender=True)
+
+@add_ability.got("ability_input", prompt="@猫屋敷你比较可爱,你来写吧") # 用户发了关键词,没写后面的参数(虚空命令)
+# 格式: 属性名 用户名 默认值
+async def new(ability_input: str = ArgStr("ability_input")):
+    ReResult = []
+    ReResult = re.split(r" ", ability_input)
+    ability_name =ReResult[0]
+    userID = ReResult[1]
+    value = Result[2]
+    await gameingdata.__AddAbility__(ability_name=ability_name, userID=userID, value=value)
+    await add_states.finish("@猫屋敷你比较可爱,你来写吧") # 添加成功
+
+
+@add_roll.got("InputObject", prompt="@猫屋敷你比较可爱,你来写吧") # 用户发了关键词,没写后面的参数(虚空命令)
+async def new(InputObject: str = ArgStr("InputObject")):
+    global GamingStates
+    ReResult = []
+    ReResult = re.split(r" ", InputObject)
+    funa = ReResult[0]
+    funb = ReResult[1]
+    StartValue = Result[2]
+    EndValue = ReResult[3]
+    ability = ReResult[4]
+    await GamingStateChanging.__RollProject__(funa=funa, funb=funb, StratValue=StartValue, EndValve=EndValue, ability=ability)
+    await add_states.finish("@猫屋敷你比较可爱,你来写吧")  # 添加成功
+    GamingStates = 2.1
+
+
+
+@add_roll2.got("InputObject", prompt="@猫屋敷你比较可爱,你来写吧") # 用户发了关键词,没写后面的参数(虚空命令)
+async  def new(InputObject: str = ArgStr("InputObject")):
+    global GamingStates
+    ReResult = re.split(r" ", InputObject)
+    funa = ReResult[0]
+    StartValue = ReResult[1]
+    EndValue = ReResult[2]
+    ability = ReResult[3]
+    await Gaming.__RollProject__(funa=funa, StratValue=StartValue, EndValve=EndValue, ability=ability)
+    await  add_roll2.finish("猫屋敷你比较可爱,你来写吧")
+    GamingStates = 2.2
+
+
+
+@roll.got("userID", prompt="猫屋敷你比较可爱,你来写吧")
+async def new(userID: str = ArgStr("userID")):
+    if GamingStates == 2.1 :
+        GamingStateChanging.__Roll__(userID=userID)
+    elif GamingStates == 2.2 :
+        Gaming.__Roll__(userID=userID)
+
